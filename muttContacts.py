@@ -33,9 +33,6 @@ def addressBook():
             if type(val) == objc.pyobjc_unicode:
                 # Unicode String
                 thisPerson[prop.lower()] = val
-#            elif issubclass(val.__class__, NSDate):
-#                # NSDate
-#                thisPerson[prop.lower()] = val.description()
             elif type(val) == ABMultiValueCoreDataWrapper:
                 # List -- convert each item in the list
                 # into the proper format
@@ -45,9 +42,6 @@ def addressBook():
                     if type(indexedValue) == objc.pyobjc_unicode:
                         # Unicode string
                         thisPerson[prop.lower()].append(indexedValue)
-#                    elif issubclass(indexedValue.__class__, NSDate):
-#                        # Date
-#                        thisPerson[prop.lower()].append(indexedValue.description())
                     elif type(indexedValue) == NSCFDictionary:
                         # NSDictionary -- convert to a Python Dictionary
                         propDict = {}
@@ -96,7 +90,7 @@ def main(name, muttQuery):
     while 1:
         if muttQuery == 1:
             break
-        print theList
+#        print theList
         ans = raw_input("Which person? ([q]uit) ")
         if ans == '':
             ans = 0
@@ -105,14 +99,20 @@ def main(name, muttQuery):
 
         if int(ans) < len(theList):
             ans = int(ans)
-#            print hits[ans]
             break
     if muttQuery == 1:
         output = ''
+        count = 0
         for result in hits:
             for address in result[1]['email']:
-                line = "\"%s\" <%s>" % (result[0], address)
-                output = "%s\n%s" % (output, line)
+                count += 1
+                line = "\"%s\"\t%s" % (address, result[0])
+                if output == '':
+                    output = "%s" % (line)
+                else:
+                    output = "%s \n%s" % (output, line)
+
+        print count
         print output
     elif len(hits[ans][1]['email']) > 1:
         i = 0
@@ -136,7 +136,6 @@ def main(name, muttQuery):
 
     else:
         MUTT(hits[ans][0], hits[ans][1]['email'][0])
-#        print hits[ans][1]['email']
 
 
 def MUTT(name, address):
