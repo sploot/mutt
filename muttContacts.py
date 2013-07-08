@@ -6,6 +6,7 @@ from subprocess import call
 import sys
 import pprint
 import re
+import getopt
 
 def addressBook():
 
@@ -58,7 +59,8 @@ def addressBook():
     return peopleList
 
 
-def main(name):
+def main(name, muttQuery):
+    # if muttQuery is TRUE, print all email results
     myList = addressBook()
     i = 0
     hits = []
@@ -76,6 +78,8 @@ def main(name):
             i += 1
 
         i = 0
+        if muttQuery == 1:
+            break
         theList = ""
         while i < len(hits):
             line = "%d | %s" % (i, hits[i][0])
@@ -90,6 +94,8 @@ def main(name):
             break
 
     while 1:
+        if muttQuery == 1:
+            break
         print theList
         ans = raw_input("Which person? ([q]uit) ")
         if ans == '':
@@ -101,8 +107,14 @@ def main(name):
             ans = int(ans)
 #            print hits[ans]
             break
-
-    if len(hits[ans][1]['email']) > 1:
+    if muttQuery == 1:
+        output = ''
+        for result in hits:
+            for address in result[1]['email']:
+                line = "\"%s\" <%s>" % (result[0], address)
+                output = "%s\n%s" % (output, line)
+        print output
+    elif len(hits[ans][1]['email']) > 1:
         i = 0
         theList = ""
         while i < len(hits[ans][1]['email']):
@@ -130,12 +142,33 @@ def main(name):
 def MUTT(name, address):
     call(["/usr/local/bin/mutt", "\"%s\" <%s>" % (name, address)])
 
+
 def USAGE():
     print "usage: %s query" % sys.argv[0]
-    sys.exit(0)
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         USAGE()
-    searchname = sys.argv[1]
-    main(searchname)
+        sys.exit(1)
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hms:",
+                    ["help", "mutt", "search="])
+    except getopt.GetoptError as err:
+        print str(err)
+        USAGE()
+        sys.exit(1)
+    QUERY = 0
+    searchname = ''
+    for o, a in opts:
+        if o == '-m':
+            QUERY = 1
+        elif o in ("-s", "--search"):
+            searchname = a
+        elif o == 'h':
+            USAGE()
+            sys.exit(0)
+        else:
+            assert False, "unhandled option"
+    if searchname == '':
+        searchname = sys.argv[-1]
+    main(searchname, QUERY)
