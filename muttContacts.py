@@ -119,15 +119,16 @@ def main(name):
                 sys.exit(0)
             if int(esel) < len(theList):
                 esel = int(esel)
-                MUTT(hits[ans][1]['email'][esel])
+                MUTT(hits[ans][0], hits[ans][1]['email'][esel])
                 break
 
     else:
-        MUTT(hits[ans][1]['email'][0])
+        MUTT(hits[ans][0], hits[ans][1]['email'][0])
 #        print hits[ans][1]['email']
 
-def MUTT(address):
-    call(["/usr/local/bin/mutt", address])
+
+def MUTT(name, address):
+    call(["/usr/local/bin/mutt", "\"%s\" <%s>" % (name, address)])
 
 def USAGE():
     print "usage: %s query" % sys.argv[0]
