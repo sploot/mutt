@@ -17,7 +17,7 @@ To use muttContacts.py as your mutt external query command:
 
 # address-search.vim #
 
-Install ftdetect plugin. Begin typing contact name followed by <c-x><c-u> and 
+Install ftdetect plugin. Begin typing contact name followed by ^x^c and 
 it will give a dropdown list of matching contact names.
 
 Can be installed using pathogen.
