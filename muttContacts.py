@@ -4,7 +4,6 @@
 from AddressBook import *
 from subprocess import call
 import sys
-import pprint
 import re
 import getopt
 
@@ -53,7 +52,7 @@ def addressBook():
     return peopleList
 
 
-def main(name, muttQuery):
+def main(name, muttQuery, vimScript):
     # if muttQuery is TRUE, print all email results
     myList = addressBook()
     i = 0
@@ -72,7 +71,7 @@ def main(name, muttQuery):
             i += 1
 
         i = 0
-        if muttQuery == 1:
+        if muttQuery == 1 or vimScript == 1:
             break
         theList = ""
         while i < len(hits):
@@ -88,9 +87,8 @@ def main(name, muttQuery):
             break
 
     while 1:
-        if muttQuery == 1:
+        if muttQuery == 1 or vimScript == 1:
             break
-#        print theList
         ans = raw_input("Which person? ([q]uit) ")
         if ans == '':
             ans = 0
@@ -100,20 +98,24 @@ def main(name, muttQuery):
         if int(ans) < len(theList):
             ans = int(ans)
             break
-    if muttQuery == 1:
+    if muttQuery == 1 or vimScript == 1:
         output = ''
         count = 0
         for result in hits:
             for address in result[1]['email']:
                 count += 1
-                line = "\"%s\"\t%s" % (address, result[0])
-                if output == '':
-                    output = "%s" % (line)
+                if muttQuery == 1:
+                    line = "<%s>\t\"%s\"" % (address, result[0])
+                    if output == '':
+                        output = "%s" % (line)
+                    else:
+                        output = "%s \n%s" % (output, line)
                 else:
-                    output = "%s \n%s" % (output, line)
+                    print "\"%s\" <%s>\n" % (result[0], address)
 
-        print count
-        print output
+        if muttQuery == 1:
+            print count
+            print output
     elif len(hits[ans][1]['email']) > 1:
         i = 0
         theList = ""
@@ -144,30 +146,38 @@ def MUTT(name, address):
 
 def USAGE():
     print "usage: %s query" % sys.argv[0]
+    print "\n"
+    print "\t-m, --mutt\t\tQUERY from mutt"
+    print "\t-v, --vim\t\tvimAddressbook request"
+    print "\t-s, --search=ARG\tSearch for ARG"
+    print "\t-h, --help\t\tThis help\n"
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
         USAGE()
         sys.exit(1)
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hms:",
-                    ["help", "mutt", "search="])
+        opts, args = getopt.getopt(sys.argv[1:], "hmvs:",
+                    ["help", "mutt", "search=", "vim"])
     except getopt.GetoptError as err:
         print str(err)
         USAGE()
         sys.exit(1)
     QUERY = 0
+    VIM = 0
     searchname = ''
     for o, a in opts:
-        if o == '-m':
+        if o in ('-m', '--mutt'):
             QUERY = 1
+        elif o in ("-v", "--vim"):
+            VIM = 1
         elif o in ("-s", "--search"):
             searchname = a
-        elif o == 'h':
+        elif o in ('h', '--help'):
             USAGE()
             sys.exit(0)
         else:
             assert False, "unhandled option"
     if searchname == '':
         searchname = sys.argv[-1]
-    main(searchname, QUERY)
+    main(searchname, QUERY, VIM)
